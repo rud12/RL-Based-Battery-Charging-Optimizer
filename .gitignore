@@ -1,0 +1,7 @@
+.DS_Store
+.venv/
+.matplotlib/
+__pycache__/
+*.py[cod]
+artifacts/*.pt
+
