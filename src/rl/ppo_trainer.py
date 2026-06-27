@@ -95,7 +95,7 @@ class PPO:
 
         return np.mean(losses)
 
-    def train(self, total_steps: int = 300_000, log_interval: int = 10):
+    def train(self, total_steps: int = 300000, log_interval: int = 10, progress_callback=None):
         obs = self.env.reset()
         update_idx = 0
         steps_done = 0
@@ -106,8 +106,8 @@ class PPO:
         print(f"\n{'=' * 60}")
         print(" Battery Charging PPO - Physics-Correct Thermal Model")
         print(f"{'=' * 60}")
-        print(f" C-rates     : {self.env.C_RATES}")
-        print(f" DeltaSoC/step   : {self.env.DELTA_SOC}  (%/min)")
+        print(f" C-rates : {self.env.C_RATES}")
+        print(f" DeltaSoC/step : {self.env.DELTA_SOC}  (%/min)")
         print(f" DeltaT_heat/step: {self.env.HEAT_GEN}  (C/min)")
         print(f" Cooling coef: {self.env.COOLING_COEF}  (C/min/C above ambient)")
         print(f" Init  SoC={self.env.init_soc}%  Temp={self.env.init_temp}C")
@@ -133,11 +133,21 @@ class PPO:
             if update_idx % log_interval == 0:
                 mean_r = np.mean(reward_win) if reward_win else 0.0
                 succ_pct = 100 * np.mean(success_win) if success_win else 0.0
-                print(
-                    f" Update {update_idx:4d} | Steps {steps_done:8d} "
-                    f"| MeanRew {mean_r:8.1f} | Success {succ_pct:5.1f}% | Loss {loss:.4f}"
+                print(f" Update {update_idx:4d} | Steps {steps_done:8d} | MeanRew {mean_r:8.1f} | Success {succ_pct:5.1f}% | Loss {loss:.4f}")
+
+            if progress_callback is not None:
+                mean_r = np.mean(reward_win) if reward_win else 0.0
+                succ_pct = 100 * np.mean(success_win) if success_win else 0.0
+                progress_callback(
+                    min(steps_done, total_steps),
+                    total_steps,
+                    {
+                        "update": update_idx,
+                        "mean_reward": mean_r,
+                        "success_pct": succ_pct,
+                        "loss": loss,
+                    },
                 )
 
         print("\n Training complete.\n")
         return all_rewards, all_success_rates
-

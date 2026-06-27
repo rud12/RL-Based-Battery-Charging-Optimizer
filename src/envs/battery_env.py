@@ -16,13 +16,12 @@ class BatteryEnv:
 
     def __init__(
         self,
-        init_temp=30.0,
+        init_temp=35.0,
         init_soc=20.0,
-        threshold_temp=55.0,
+        threshold_temp=50.0,
         goal_soc=80.0,
         ambient_temp=25.0,
-        max_steps=500,
-        randomize_init=False,
+        max_steps=500
     ):
         self.init_temp = init_temp
         self.init_soc = init_soc
@@ -30,7 +29,6 @@ class BatteryEnv:
         self.goal_soc = goal_soc
         self.ambient_temp = ambient_temp
         self.max_steps = max_steps
-        self.randomize_init = randomize_init
 
         self.n_actions = len(self.C_RATES)
         self.obs_dim = 3
@@ -38,13 +36,9 @@ class BatteryEnv:
         self.reset()
 
     def reset(self):
-        if self.randomize_init:
-            self.soc = float(np.random.uniform(self.init_soc - 5, self.init_soc + 5))
-            self.temp = float(np.random.uniform(self.init_temp - 2, self.init_temp + 2))
-        else:
-            self.soc = float(self.init_soc)
-            self.temp = float(self.init_temp)
-
+        self.soc = float(np.random.uniform(self.init_soc - 5, self.init_soc + 5))
+        self.temp = float(np.random.uniform(self.init_temp - 2, self.init_temp + 2))
+        
         self.soc = np.clip(self.soc, 0.0, 100.0)
         self.steps = 0
         return self._obs()
@@ -69,6 +63,7 @@ class BatteryEnv:
         self.soc = min(self.soc + delta_soc, 100.0)
         self.steps += 1
 
+        # REWARD
         headroom = self.threshold_temp - self.temp
         soc_frac = self.soc / 100.0
 
